@@ -27,6 +27,27 @@ func Grayscale(img *image.RGBA) {
 	}
 }
 
+func FastGrayscale(img *image.RGBA) {
+	bounds := img.Bounds()
+
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			i := img.PixOffset(x, y)
+			r := img.Pix[i+0]
+			g := img.Pix[i+1]
+			b := img.Pix[i+2]
+
+			yInt32 := (13933*uint32(r) + 46871*uint32(g) + 4732*uint32(b)) >> 16
+
+			y := uint8(yInt32)
+
+			img.Pix[i+0] = y
+			img.Pix[i+1] = y
+			img.Pix[i+2] = y
+		}
+	}
+}
+
 // Uses the most simplest and basic approach
 func AvgGrayscale(img *image.RGBA) {
 	bounds := img.Bounds()

@@ -17,7 +17,9 @@ func main() {
 	// point.Brightness(rgbaImg, 40)
 	// point.Grayscale(rgbaImg)
 	// point.AvgGrayscale(rgbaImg)
-	point.PhotoshopGrayscale(rgbaImg)
+	// point.PhotoshopGrayscale(rgbaImg)
+	// point.LinearContrast(rgbaImg, 1.5)
+	point.FastGrayscale(rgbaImg)
 
-	image.SaveImage(rgbaImg, "output.png", "./assets/saves")
+	image.SaveImage(rgbaImg, "fast-grayscale.png", "./assets/saves")
 }
