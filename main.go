@@ -19,7 +19,8 @@ func main() {
 	// point.AvgGrayscale(rgbaImg)
 	// point.PhotoshopGrayscale(rgbaImg)
 	// point.LinearContrast(rgbaImg, 1.5)
-	point.FastGrayscale(rgbaImg)
+	// point.FastGrayscale(rgbaImg)
+	point.SigmoidalContrast(rgbaImg, 0.1)
 
-	image.SaveImage(rgbaImg, "fast-grayscale.png", "./assets/saves")
+	image.SaveImage(rgbaImg, "sigmoidalcontrast.png", "./assets/saves")
 }
