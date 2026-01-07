@@ -2,6 +2,7 @@ package point
 
 import "image"
 
+// this works for darkness as well given a negative valuw
 func Brightness(img *image.RGBA, value int) {
 	bounds := img.Bounds()
 

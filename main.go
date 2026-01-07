@@ -14,7 +14,10 @@ func main() {
 
 	// image.IterateImage(testImage)
 	// point.Invert(rgbaImg)
-	point.Brightness(rgbaImg, 40)
+	// point.Brightness(rgbaImg, 40)
+	// point.Grayscale(rgbaImg)
+	// point.AvgGrayscale(rgbaImg)
+	point.PhotoshopGrayscale(rgbaImg)
 
-	image.SaveImage(rgbaImg, "brightness.png", "./assets/saves")
+	image.SaveImage(rgbaImg, "output.png", "./assets/saves")
 }
