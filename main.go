@@ -20,7 +20,8 @@ func main() {
 	// point.PhotoshopGrayscale(rgbaImg)
 	// point.LinearContrast(rgbaImg, 1.5)
 	// point.FastGrayscale(rgbaImg)
-	point.SigmoidalContrast(rgbaImg, 0.1)
+	// point.SigmoidalContrast(rgbaImg, 0.1)
+	point.Threshold(rgbaImg, 70)
 
-	image.SaveImage(rgbaImg, "sigmoidalcontrast.png", "./assets/saves")
+	image.SaveImage(rgbaImg, "output.png", "./assets/saves")
 }

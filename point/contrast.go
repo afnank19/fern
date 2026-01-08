@@ -28,6 +28,7 @@ func LinearContrast(img *image.RGBA, factor float64) {
 }
 
 // A lot of code repitition here, refactor into smaller chunks
+// This code can also be optimized a lot, look into LUTs, lowBound, highBound requirements etc
 func SigmoidalContrast(img *image.RGBA, factor float64) {
 	bounds := img.Bounds()
 
