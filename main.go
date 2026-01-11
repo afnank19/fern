@@ -3,14 +3,14 @@ package main
 import (
 	"fmt"
 
+	"github.com/afnank19/fern/filter"
 	"github.com/afnank19/fern/image"
-	"github.com/afnank19/fern/noise"
 )
 
 func main() {
 	fmt.Println("Hello, Fern! We will be processing images!")
 
-	_, rgbaImg := image.LoadImage("./assets/lara.jpeg")
+	_, rgbaImg := image.LoadImage("./assets/what.jpeg")
 
 	// image.IterateImage(testImage)
 	// point.Invert(rgbaImg)
@@ -25,7 +25,15 @@ func main() {
 
 	// noise.Uniform(rgbaImg, 20, true)
 	// noise.Gaussian(rgbaImg, 20, true)
-	noise.SaltAndPepper(rgbaImg, 0.005)
+	// noise.SaltAndPepper(rgbaImg, 0.005)
 
-	image.SaveImage(rgbaImg, "seasoning.png", "./assets/saves")
+	// filter.SliceShenanas()
+	// image.IterateImage(rgbaImg)
+	// image.TestNegAccess(rgbaImg)
+	newImg := filter.BoxBlur(rgbaImg, 0.1)
+	// fmt.Println(filter.CalculateKernelSize(rgbaImg, 1.0))
+
+	// image.SaveImage(rgbaImg, "seasoning.png", "./assets/saves")
+
+	image.SaveImage(newImg, "filter.png", "./assets/saves")
 }

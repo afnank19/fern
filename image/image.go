@@ -34,21 +34,21 @@ func LoadImage(path string) (image.Image, *image.RGBA) {
 	return img, rgba
 }
 
-func IterateImage(img image.Image) {
+func IterateImage(img *image.RGBA) {
 	bounds := img.Bounds()
 
 	fmt.Println()
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 			// access pixel at (x, y)
-			fmt.Print("X:", x, y, img.At(x, y), " ")
-			if x > 0 {
+			if x > 2 {
 				break
 			}
+			fmt.Print("[", x, y, "] ")
 
 		}
 		fmt.Println()
-		if y > 0 {
+		if y > 2 {
 			break
 		}
 	}
@@ -66,4 +66,15 @@ func SaveImage(img *image.RGBA, name, path string) {
 	defer out.Close()
 
 	png.Encode(out, img)
+}
+
+func CopyRGBA(src *image.RGBA) *image.RGBA {
+	dst := image.NewRGBA(src.Bounds())
+	copy(dst.Pix, src.Pix)
+	return dst
+}
+
+func TestNegAccess(img *image.RGBA) {
+	i := img.PixOffset(-1, -1)
+	fmt.Println(i)
 }
