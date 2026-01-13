@@ -4,7 +4,6 @@ import (
 	"image"
 )
 
-// TODO: Move into box blur file
 // TODO: Gaussian Blur
 func BoxBlur(img *image.RGBA, val float64) *image.RGBA {
 	if val > 1.0 {

@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/afnank19/fern/filter"
 	"github.com/afnank19/fern/image"
-	"github.com/afnank19/fern/point"
 )
 
 func main() {
 	fmt.Println("Hello, Fern! We will be processing images!")
 
-	_, rgbaImg := image.LoadImage("./assets/evelyn.png")
+	_, rgbaImg := image.LoadImage("./assets/what.jpeg")
 
 	// image.IterateImage(testImage)
 	// point.Invert(rgbaImg)
@@ -22,10 +22,10 @@ func main() {
 	// point.LinearContrast(rgbaImg, 1.5)
 	// point.FastGrayscale(rgbaImg)
 	// point.SigmoidalContrast(rgbaImg, 0.10)
-	start := time.Now()
-	point.FastSigmoidalContrast(rgbaImg, 8.0)
-	elapsed := time.Since(start)
-	fmt.Println(" Elapsed -", elapsed)
+	// start := time.Now()
+	// point.FastSigmoidalContrast(rgbaImg, 8.0)
+	// elapsed := time.Since(start)
+	// fmt.Println(" Elapsed -", elapsed)
 	// point.Threshold(rgbaImg, 50)
 
 	// noise.Uniform(rgbaImg, 20, true)
@@ -37,8 +37,13 @@ func main() {
 	// image.TestNegAccess(rgbaImg)
 	// newImg := filter.BoxBlur(rgbaImg, 1.0)
 	// fmt.Println(filter.CalculateKernelSize(rgbaImg, 1.0))
+	//
+	start := time.Now()
+	newImg := filter.GaussianBlur(rgbaImg, 0.5)
+	elapsed := time.Since(start)
+	fmt.Println(" Elapsed -", elapsed)
 
-	image.SaveImage(rgbaImg, "normalsigcontra.png", "./assets/saves")
+	// image.SaveImage(rgbaImg, "gaussianblur.png", "./assets/saves")
 
-	// image.SaveImage(newImg, "filter.png", "./assets/saves")
+	image.SaveImage(newImg, "gaussianblur.png", "./assets/saves")
 }
