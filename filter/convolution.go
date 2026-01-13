@@ -115,6 +115,24 @@ func clampFastFloat(val float64) uint8 {
 	return uint8(math.Max(0, math.Min(255, val)))
 }
 
+// Calculates the kernel size based on image width
+// returns the kernel width, e.g a width of 3 means a 3x3 kernel
+func CalculateKernelSize(img *image.RGBA, val float64) int {
+	b := img.Bounds()
+
+	mappedVal := val * 0.025
+
+	kernelSizeF := (2. * (mappedVal * math.Min(float64(b.Max.X), float64(b.Max.Y)))) + 1.
+
+	kernelSize := int(math.Ceil(kernelSizeF))
+
+	if kernelSize%2 == 0 {
+		kernelSize-- // could ++, but eh
+	}
+
+	return kernelSize
+}
+
 // func SliceShenanas() {
 // 	baseX := 200
 // 	baseY := 200

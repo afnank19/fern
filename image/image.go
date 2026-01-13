@@ -62,6 +62,7 @@ func SaveImage(img *image.RGBA, name, path string) {
 	out, err := os.Create(path + "/" + name)
 	if err != nil {
 		// handle error
+		panic(err)
 	}
 	defer out.Close()
 
