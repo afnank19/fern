@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"time"
-
 	"github.com/afnank19/fern/filter"
 	"github.com/afnank19/fern/image"
 )
@@ -11,7 +9,7 @@ import (
 func main() {
 	fmt.Println("Hello, Fern! We will be processing images!")
 
-	_, rgbaImg := image.LoadImage("./assets/what.jpeg")
+	_, rgbaImg := image.LoadImage("./assets/evelyn.png")
 
 	// image.IterateImage(testImage)
 	// point.Invert(rgbaImg)
@@ -38,12 +36,14 @@ func main() {
 	// newImg := filter.BoxBlur(rgbaImg, 1.0)
 	// fmt.Println(filter.CalculateKernelSize(rgbaImg, 1.0))
 	//
-	start := time.Now()
-	newImg := filter.GaussianBlur(rgbaImg, 0.5)
-	elapsed := time.Since(start)
-	fmt.Println(" Elapsed -", elapsed)
+	// start := time.Now()
+	// newImg := filter.GaussianBlur(rgbaImg, 0.01)
+	// elapsed := time.Since(start)
+	// fmt.Println(" Elapsed -", elapsed)
+
+	newImg := filter.Sharpen(rgbaImg, 0.5)
 
 	// image.SaveImage(rgbaImg, "gaussianblur.png", "./assets/saves")
 
-	image.SaveImage(newImg, "gaussianblur.png", "./assets/saves")
+	image.SaveImage(newImg, "sharpen.png", "./assets/saves")
 }
