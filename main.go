@@ -41,9 +41,11 @@ func main() {
 	// elapsed := time.Since(start)
 	// fmt.Println(" Elapsed -", elapsed)
 
-	newImg := filter.Sharpen(rgbaImg, 0.5)
+	// newImg := filter.Sharpen(rgbaImg, 0.5)
 
-	// image.SaveImage(rgbaImg, "gaussianblur.png", "./assets/saves")
+	filter.UnsharpMask(rgbaImg, 0.2, 1.5)
 
-	image.SaveImage(newImg, "sharpen.png", "./assets/saves")
+	image.SaveImage(rgbaImg, "unsharp.png", "./assets/saves")
+
+	// image.SaveImage(newImg, "sharpen.png", "./assets/saves")
 }
