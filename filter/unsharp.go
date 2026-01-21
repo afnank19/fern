@@ -6,6 +6,7 @@ import (
 )
 
 // TODO: possibly handle blurAmt being too large
+// TODO: Move to a composite pkg i.e effects/stylize since the it requires a filter + point operation to work
 func UnsharpMask(img *image.RGBA, blurAmt float64, sharpeningAmount float64 ) {
 	newImg := GaussianBlur(img, blurAmt)
 

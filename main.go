@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/afnank19/fern/filter"
+
+	"github.com/afnank19/fern/composite"
 	"github.com/afnank19/fern/image"
+	"github.com/afnank19/fern/noise"
 )
 
 func main() {
@@ -43,9 +45,11 @@ func main() {
 
 	// newImg := filter.Sharpen(rgbaImg, 0.5)
 
-	filter.UnsharpMask(rgbaImg, 0.2, 1.5)
+	// filter.UnsharpMask(rgbaImg, 0.2, 1.5)
+	composite.NaiveBloom(rgbaImg, 0.75, 0.67, 0.9)
+	noise.Gaussian(rgbaImg, 5, true)
 
-	image.SaveImage(rgbaImg, "unsharp.png", "./assets/saves")
+	image.SaveImage(rgbaImg, "bloom.png", "./assets/saves")
 
 	// image.SaveImage(newImg, "sharpen.png", "./assets/saves")
 }

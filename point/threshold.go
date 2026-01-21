@@ -14,7 +14,7 @@ func Threshold(img *image.RGBA, threshold uint8) {
 			g := img.Pix[i+1]
 			b := img.Pix[i+2]
 
-			y := luminancePhotoshop(r, g, b)
+			y := LuminancePhotoshop(r, g, b)
 			// using just R, because G,B are the same as well (Grayscale image)
 			if y >= threshold {
 				NewY = 255

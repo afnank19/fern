@@ -88,7 +88,7 @@ func PhotoshopGrayscale(img *image.RGBA) {
 			// yLin := (0.2126 * rLin) + (0.7152 * gLin) + (0.0722 * bLin) // weighted formula for a pixel avg
 
 			// y := linearToSRGB(yLin)
-			y := luminancePhotoshop(r, g, b)
+			y := LuminancePhotoshop(r, g, b)
 
 			img.Pix[i+0] = y
 			img.Pix[i+1] = y
@@ -97,7 +97,7 @@ func PhotoshopGrayscale(img *image.RGBA) {
 	}
 }
 
-func luminancePhotoshop(r, g, b uint8) uint8 {
+func LuminancePhotoshop(r, g, b uint8) uint8 {
 	rLin := sRGBToLinear(r)
 	gLin := sRGBToLinear(g)
 	bLin := sRGBToLinear(b)
