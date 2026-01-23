@@ -66,3 +66,33 @@ func calculateGaussianKernelSize(img *image.RGBA, val float64) (int ,float64){
 
     return 2*radius + 1, sigma
 }
+
+
+func FastGaussianBlur(img *image.RGBA, val float64)  *image.RGBA{
+	kernelSize, sigma := calculateGaussianKernelSize(img, val)
+	kernel := build1DGaussianKernel(kernelSize, sigma)
+
+	return Convolve1D(img, kernel)
+}
+
+func build1DGaussianKernel(kernelSize int, sigma float64) []float64{
+	fmt.Println("building 1d gaussian kernel with size", kernelSize, " and sigma", sigma)
+	kernel := make([]float64, kernelSize)
+
+	radius := kernelSize / 2
+
+	var kernelValSum float64= 0.0
+	for i := range kernel {
+			x := float64(i - radius)
+
+			value := math.Exp( -(x*x)/ (2 * (sigma * sigma)))
+			kernel[i] = value
+			kernelValSum += value
+	}
+
+	for i := range kernel {
+		kernel[i] = kernel[i] /  kernelValSum
+	}
+
+	return kernel
+}

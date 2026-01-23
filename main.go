@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/afnank19/fern/filter"
 	"github.com/afnank19/fern/image"
@@ -49,10 +50,25 @@ func main() {
 	// composite.NaiveBloom(rgbaImg, 0.75, 0.6, 0.5)
 	// noise.Gaussian(rgbaImg, 5, true)
 
-	newImg := filter.Downsample2x(rgbaImg)
+	// newImg := filter.Downsample2x(rgbaImg)
 	// newImg = filter.Downsample2x(newImg)
 
 	// image.SaveImage(rgbaImg, "bloom.png", "./assets/saves")
 
-	image.SaveImage(newImg, "downsample2x.png", "./assets/saves")
+	start := time.Now()
+	newImg := filter.GaussianBlur(rgbaImg, 1.5)
+	elapsed := time.Since(start)
+	fmt.Println(" NAIVE GAUSSIAN: Elapsed -", elapsed)
+
+	image.SaveImage(newImg, "naive-gauss.png", "./assets/saves")
+
+	fmt.Println("----------------------------")
+
+	start = time.Now()
+	fastGauss := filter.FastGaussianBlur(rgbaImg, 1.5)
+	elapsed = time.Since(start)
+	fmt.Println(" FAST GAUSSIAN: Elapsed -", elapsed)
+
+
+	image.SaveImage(fastGauss, "fast-gauss.png", "./assets/saves")
 }
