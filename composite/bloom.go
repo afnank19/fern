@@ -48,7 +48,7 @@ func NaiveBloom(img *image.RGBA, intensity ,threshold, blurAmt float64) {
 
 
 	localImg.SaveImage(brightPass, "brightpass.png", "./assets/saves")
-	blurredBright := filter.GaussianBlur(brightPass, blurAmt)
+	blurredBright := filter.FastGaussianBlur(brightPass, blurAmt)
 
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
