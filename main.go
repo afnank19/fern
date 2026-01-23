@@ -3,15 +3,15 @@ package main
 import (
 	"fmt"
 
+	"github.com/afnank19/fern/geometric"
 	"github.com/afnank19/fern/image"
-	"github.com/afnank19/fern/noise"
 )
 
 func main() {
 	fmt.Println("Hello, Fern! We will be processing images!")
 
-	_, rgbaImg := image.LoadImage("./assets/saves/bloom.png")
-	// _, rgbaImg := image.LoadImage("./assets/samples/se98.jpg")
+	_, rgbaImg := image.LoadImage("./assets/evelyn.png")
+	// _, rgbaImg := image.LoadImage("./assets/samples/sample4x4.png")
 
 	// image.IterateImage(testImage)
 	// point.Invert(rgbaImg)
@@ -47,11 +47,14 @@ func main() {
 
 	// filter.UnsharpMask(rgbaImg, 0.2, 1.5)
 	// composite.NaiveBloom(rgbaImg, 0.30, 0.30, 0.8)
-	noise.Gaussian(rgbaImg, 3, true)
+	// noise.Gaussian(rgbaImg, 20, true)
 	// noise.Uniform(rgbaImg, 5, true)
 
 	// newImg := filter.Downsample2x(rgbaImg)
 	// newImg = filter.Downsample2x(newImg)
+	// image.SaveBlah()
+
+	geometric.ChromaticAberration(rgbaImg, 20, 0)
 
 	image.SaveImage(rgbaImg, "fern.png", "./assets/saves")
 
@@ -64,10 +67,47 @@ func main() {
 
 	fmt.Println("----------------------------")
 
+	SliceShift()
+
 	// start = time.Now()
 	// fastGauss := filter.FastGaussianBlur(rgbaImg, 1.5)
 	// elapsed = time.Since(start)
 	// fmt.Println(" FAST GAUSSIAN: Elapsed -", elapsed)
 
 	// image.SaveImage(fastGauss, "fast-gauss.png", "./assets/saves")
+}
+
+// TODO: remove
+func SliceShift() {
+	temp := []int{1, 2, 2, 2, 3, 2, 2, 2, 5, 2, 2, 2, 7}
+	// slice := []int{1, 2, 2, 2, 3, 2, 2, 2, 5, 2, 2, 2, 7}
+
+	// t := temp[0]
+	// temp[0] = 0
+	// for i := 0; i < len(temp)-4; i += 4 {
+	// 	f := t
+	// 	t = temp[i+4]
+	// 	temp[i+4] = f
+	// }
+
+	pos := 3
+	offset := 4
+	n := len(temp)
+
+	for i := n-1; i >= offset * pos; i -= offset {
+		newVal := temp[i-(offset * pos)]
+		temp[i] = newVal
+	}
+
+	// if (offset * pos > n) {
+	// 	panic("beabadoobee", )
+	// }
+
+	for i := 0; i < offset * pos; i += offset {
+		temp[i] = 0
+	}
+
+	fmt.Println(temp)
+	// SliceShiftWithZeroes(slice, 2)
+	// SliceShiftEvery4thWithZeroes(slice, 2)
 }

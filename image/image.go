@@ -3,6 +3,7 @@ package image
 import (
 	"fmt"
 	"image"
+	"image/color"
 	"image/draw"
 	_ "image/jpeg"
 	"image/png"
@@ -78,4 +79,25 @@ func CopyRGBA(src *image.RGBA) *image.RGBA {
 func TestNegAccess(img *image.RGBA) {
 	i := img.PixOffset(-1, -1)
 	fmt.Println(i)
+}
+
+// TODO: Remove or reuse properly
+// Was to generate a small photo so i could analyze pixels
+func SaveBlah() {
+	out := image.NewRGBA(image.Rect(0, 0, 3, 3))
+
+	// Loop through every pixel
+	for y := 0; y < 3; y++ {
+		for x := 0; x < 3; x++ {
+			// Calculate a red value that changes based on position
+			// Using (x + y * 4) * 16 gives us 16 distinct shades of red
+			r := uint8((x + y*4) * 16)
+
+			// Set the pixel color: RGBA(red, green, blue, alpha)
+			// Alpha is set to 255 for full opacity
+			out.SetRGBA(x, y, color.RGBA{R: r, G: 0, B: 0, A: 255})
+		}
+	}
+
+	SaveImage(out, "sample4x4.png", "./assets/samples")
 }
