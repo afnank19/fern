@@ -26,4 +26,22 @@ func ChromaticAberration(img *image.RGBA, strength int, fringeType int) {
 	for idx := 0; idx < offset*strength; idx += offset {
 		img.Pix[idx] = 0
 	}
+
+	// for idx := 1 + fringeType; idx < n - offset * strength; idx += offset {
+	// 	newVal := img.Pix[idx+(offset*strength)]
+	// 	img.Pix[idx] = newVal
+	// }
+
+	// for i := n - offset*strength; i < n; i++ {
+	// 	img.Pix[i] = 0
+	// }
+
+	// for idx := 2 + fringeType; idx < n - offset * strength; idx += offset {
+	// 	newVal := img.Pix[idx+(offset*strength)]
+	// 	img.Pix[idx] = newVal
+	// }
+
+	// for i := n - offset*strength; i < n; i++ {
+	// 	img.Pix[i] = 0
+	// }
 }

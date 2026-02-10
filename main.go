@@ -3,14 +3,14 @@ package main
 import (
 	"fmt"
 
-	"github.com/afnank19/fern/geometric"
+	"github.com/afnank19/fern/composite"
 	"github.com/afnank19/fern/image"
 )
 
 func main() {
 	fmt.Println("Hello, Fern! We will be processing images!")
 
-	_, rgbaImg := image.LoadImage("./assets/evelyn.png")
+	// _, rgbaImg := image.LoadImage("./assets/evelyn.png")
 	// _, rgbaImg := image.LoadImage("./assets/samples/sample4x4.png")
 
 	// image.IterateImage(testImage)
@@ -46,28 +46,37 @@ func main() {
 	// newImg := filter.Sharpen(rgbaImg, 0.5)
 
 	// filter.UnsharpMask(rgbaImg, 0.2, 1.5)
-	// composite.NaiveBloom(rgbaImg, 0.30, 0.30, 0.8)
-	// noise.Gaussian(rgbaImg, 20, true)
+	// composite.NaiveBloom(rgbaImg, 0.95, 0.61, 0.80)
+	// geometric.ChromaticAberration(rgbaImg, 3, 0)
+	// noise.Gaussian(rgbaImg, 10, true)
 	// noise.Uniform(rgbaImg, 5, true)
 
 	// newImg := filter.Downsample2x(rgbaImg)
 	// newImg = filter.Downsample2x(newImg)
 	// image.SaveBlah()
 
-	geometric.ChromaticAberration(rgbaImg, 20, 0)
+	// newImg := filter.Upsample2x(rgbaImg)
+	// newImg = filter.Upsample2x(newImg)
 
-	image.SaveImage(rgbaImg, "fern.png", "./assets/saves")
+	// image.SaveImage(rgbaImg, "fern.png", "./assets/saves")
 
 	// start := time.Now()
 	// newImg := filter.GaussianBlur(rgbaImg, 1.5)
 	// elapsed := time.Since(start)
 	// fmt.Println(" NAIVE GAUSSIAN: Elapsed -", elapsed)
 
-	// image.SaveImage(newImg, "naive-gauss.png", "./assets/saves")
+	_, rgbaImg := image.LoadImage("./assets/samples/cafe.jpeg")
+	_, controlImg := image.LoadImage("./assets/samples/cafe.jpeg")
 
-	fmt.Println("----------------------------")
+	// composite.NaiveBloom(controlImg, 1.0, 0.80, 0.80)
+	composite.Bloom(rgbaImg, 0.35, 0.50, 0.95)
 
-	SliceShift()
+	image.SaveImage(rgbaImg, "bloom.png", "./assets/bloom")
+	image.SaveImage(controlImg, "control-bloom.png", "./assets/bloom")
+
+	// fmt.Println("----------------------------")
+
+	// SliceShift()
 
 	// start = time.Now()
 	// fastGauss := filter.FastGaussianBlur(rgbaImg, 1.5)
@@ -94,8 +103,8 @@ func SliceShift() {
 	offset := 4
 	n := len(temp)
 
-	for i := n-1; i >= offset * pos; i -= offset {
-		newVal := temp[i-(offset * pos)]
+	for i := n - 1; i >= offset*pos; i -= offset {
+		newVal := temp[i-(offset*pos)]
 		temp[i] = newVal
 	}
 
@@ -103,7 +112,7 @@ func SliceShift() {
 	// 	panic("beabadoobee", )
 	// }
 
-	for i := 0; i < offset * pos; i += offset {
+	for i := 0; i < offset*pos; i += offset {
 		temp[i] = 0
 	}
 
