@@ -96,3 +96,14 @@ func build1DGaussianKernel(kernelSize int, sigma float64) []float64{
 
 	return kernel
 }
+
+func GetKernelForBloom(img *image.RGBA, val float64) []float64 {
+	kernelSize, sigma := calculateGaussianKernelSize(img, val)
+	kernel := build1DGaussianKernel(kernelSize, sigma)
+
+	return kernel
+}
+
+func FastGaussianBlurWithKernel(img *image.RGBA, kernel []float64) *image.RGBA {
+	return Convolve1D(img, kernel)
+}

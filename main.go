@@ -65,14 +65,14 @@ func main() {
 	// elapsed := time.Since(start)
 	// fmt.Println(" NAIVE GAUSSIAN: Elapsed -", elapsed)
 
-	_, rgbaImg := image.LoadImage("./assets/samples/cafe.jpeg")
-	_, controlImg := image.LoadImage("./assets/samples/cafe.jpeg")
+	_, rgbaImg := image.LoadImage("./assets/samples/height.JPG")
+	// _, controlImg := image.LoadImage("./assets/samples/cafe.jpeg")
 
-	// composite.NaiveBloom(controlImg, 1.0, 0.80, 0.80)
-	composite.Bloom(rgbaImg, 0.35, 0.50, 0.95)
+	// composite.NaiveBloom(rgbaImg, 1.0, 0.80, 0.80)
+	composite.Bloom(rgbaImg, 0.25, 0.25, 0.65)
 
 	image.SaveImage(rgbaImg, "bloom.png", "./assets/bloom")
-	image.SaveImage(controlImg, "control-bloom.png", "./assets/bloom")
+	// image.SaveImage(controlImg, "control-bloom.png", "./assets/bloom")
 
 	// fmt.Println("----------------------------")
 

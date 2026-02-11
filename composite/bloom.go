@@ -11,7 +11,7 @@ import (
 	"github.com/afnank19/fern/utils"
 )
 
-const samplePasses = 4
+const samplePasses = 8
 
 func NaiveBloom(img *image.RGBA, intensity ,threshold, blurAmt float64) {
 	bounds := img.Bounds()
@@ -115,12 +115,14 @@ func Bloom(img *image.RGBA, intensity ,threshold, blurAmt float64) {
 	var downsampledBlurredPasses []*image.RGBA
 	var levelWeights []float64
 	levelWeights = append(levelWeights, 0.5)
+	blurKernel := filter.GetKernelForBloom(img, blurAmt)
 
 	activeBrightPass := localImg.CopyRGBA(brightPass)
 	for i := 0; i < samplePasses; i++ {
 		downsampledImg := filter.Downsample2x(activeBrightPass)
 
-		downsampledBlurred := filter.FastGaussianBlur(downsampledImg, blurAmt)
+		// downsampledBlurred := filter.FastGaussianBlur(downsampledImg, blurAmt)
+		downsampledBlurred := filter.FastGaussianBlurWithKernel(downsampledImg, blurKernel)
 		localImg.SaveImage(downsampledBlurred, fmt.Sprintf("down-sample-%dx.png",i*2), "./assets/bloom")
 		downsampledBlurredPasses = append(downsampledBlurredPasses, downsampledBlurred)
 
@@ -161,10 +163,11 @@ func Bloom(img *image.RGBA, intensity ,threshold, blurAmt float64) {
 	}
 
 	// The first image in this array is 1 Downsample2x lower than our original image
-	// Original -> 6x6 so this will 3x3, we need to upsample it again
+	// Original -> 6x6 so this will be 3x3, we need to upsample it again
 	temp := localImg.CopyRGBA(downsampledBlurredPasses[0])
+	localImg.SaveImage(temp ,"temp-downsample-0.png", "./assets/bloom")
 	finalUpsample := filter.Upsample2x(temp)
-	localImg.SaveImage(finalUpsample,"up-sample-pre-0x.png", "./assets/bloom")
+	localImg.SaveImage(finalUpsample,"up-sample-0x.png", "./assets/bloom")
 
 	finalMinBounds := getMinimumBounds(img, finalUpsample)
 	for y := finalMinBounds.Min.Y; y < finalMinBounds.Max.Y; y++ {

@@ -80,6 +80,10 @@ func Upsample2x(img *image.RGBA) *image.RGBA {
 	doubleWidth := bounds.Dx() * 2
 	doubleHeight := bounds.Dy() * 2
 
+	if doubleHeight == 1 || doubleWidth == 1 {
+		return img
+	}
+
 	out := image.NewRGBA(image.Rect(0, 0, doubleWidth, doubleHeight))
 
 	outBounds := out.Bounds()
