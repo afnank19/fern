@@ -90,11 +90,12 @@ func Bloom(img *image.RGBA, intensity ,threshold, blurAmt float64) {
 			a := img.Pix[i+3]
 
 			lum := point.LuminancePhotoshop(r, g, b)
+			linearLum := utils.SRGBToLinear(lum)
 			// IMPORTANT: convert either on to the other properly, not just type conv
 			if (lum < utils.FloatToUint8(threshold)) {
 				// fmt.Println("lum", lum, "thre", utils.FloatToUint8(threshold))
 				// Softer bloom threshold
-				t := float64(lum)/255.0
+				t := linearLum/1.0
 				w := math.Max(0, (t-threshold)/(1-threshold))
 
 				r = uint8(float64(r) * w)
@@ -114,7 +115,7 @@ func Bloom(img *image.RGBA, intensity ,threshold, blurAmt float64) {
 
 	var downsampledBlurredPasses []*image.RGBA
 	var levelWeights []float64
-	levelWeights = append(levelWeights, 0.5)
+	levelWeights = append(levelWeights, intensity)
 	blurKernel := filter.GetKernelForBloom(img, blurAmt)
 
 	activeBrightPass := localImg.CopyRGBA(brightPass)
@@ -123,20 +124,21 @@ func Bloom(img *image.RGBA, intensity ,threshold, blurAmt float64) {
 
 		// downsampledBlurred := filter.FastGaussianBlur(downsampledImg, blurAmt)
 		downsampledBlurred := filter.FastGaussianBlurWithKernel(downsampledImg, blurKernel)
-		localImg.SaveImage(downsampledBlurred, fmt.Sprintf("down-sample-%dx.png",i*2), "./assets/bloom")
+		// localImg.SaveImage(downsampledBlurred, fmt.Sprintf("down-sample-%dx.png",i*2), "./assets/bloom")
 		downsampledBlurredPasses = append(downsampledBlurredPasses, downsampledBlurred)
 
 		activeBrightPass = localImg.CopyRGBA(downsampledBlurred)
-		levelWeights = append(levelWeights, levelWeights[i] / 2.0)
+		levelWeights = append(levelWeights, levelWeights[i] / 1.0)
 	}
 
-	fmt.Println(len(levelWeights), levelWeights)
-	fmt.Println(len(downsampledBlurredPasses))
+	// fmt.Println(len(levelWeights), levelWeights)
+	// fmt.Println(len(downsampledBlurredPasses))
 	for idx := len(downsampledBlurredPasses)-1; idx > 0; idx-- {
 		downsampledImg := localImg.CopyRGBA(downsampledBlurredPasses[idx])
 		upsampledImg := filter.Upsample2x(downsampledImg)
-		localImg.SaveImage(upsampledImg, fmt.Sprintf("up-sample-pre-%dx.png",idx*2), "./assets/bloom")
+		// localImg.SaveImage(upsampledImg, fmt.Sprintf("up-sample-pre-%dx.png",idx*2), "./assets/bloom")
 		nextDSI := downsampledBlurredPasses[idx-1]
+		// localImg.SaveImage(nextDSI, fmt.Sprintf("nextdsi-sample-%dx.png",idx*2), "./assets/bloom")
 
 		minBounds := getMinimumBounds(nextDSI, upsampledImg)
 		for y := minBounds.Min.Y; y < minBounds.Max.Y; y++ {
@@ -159,15 +161,15 @@ func Bloom(img *image.RGBA, intensity ,threshold, blurAmt float64) {
 			}
 		}
 
-		localImg.SaveImage(nextDSI, fmt.Sprintf("up-sample-%dx.png",idx*2), "./assets/bloom")
+		// localImg.SaveImage(nextDSI, fmt.Sprintf("up-sample-%dx.png",idx*2), "./assets/bloom")
 	}
 
 	// The first image in this array is 1 Downsample2x lower than our original image
 	// Original -> 6x6 so this will be 3x3, we need to upsample it again
 	temp := localImg.CopyRGBA(downsampledBlurredPasses[0])
-	localImg.SaveImage(temp ,"temp-downsample-0.png", "./assets/bloom")
+	// localImg.SaveImage(temp ,"temp-downsample-0.png", "./assets/bloom")
 	finalUpsample := filter.Upsample2x(temp)
-	localImg.SaveImage(finalUpsample,"up-sample-0x.png", "./assets/bloom")
+	// localImg.SaveImage(finalUpsample,"up-sample-0x.png", "./assets/bloom")
 
 	finalMinBounds := getMinimumBounds(img, finalUpsample)
 	for y := finalMinBounds.Min.Y; y < finalMinBounds.Max.Y; y++ {

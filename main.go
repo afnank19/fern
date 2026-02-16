@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/afnank19/fern/composite"
+	"github.com/afnank19/fern/geometric"
 	"github.com/afnank19/fern/image"
 )
 
@@ -65,11 +66,13 @@ func main() {
 	// elapsed := time.Since(start)
 	// fmt.Println(" NAIVE GAUSSIAN: Elapsed -", elapsed)
 
-	_, rgbaImg := image.LoadImage("./assets/samples/height.JPG")
+	_, rgbaImg := image.LoadImage("./assets/samples/trail.JPG")
 	// _, controlImg := image.LoadImage("./assets/samples/cafe.jpeg")
 
 	// composite.NaiveBloom(rgbaImg, 1.0, 0.80, 0.80)
-	composite.Bloom(rgbaImg, 0.25, 0.25, 0.65)
+	composite.Bloom(rgbaImg, 0.21, 0.48, 0.35)
+	// noise.Gaussian(rgbaImg, 10, true)
+	geometric.ChromaticAberration(rgbaImg, 2, 0)
 
 	image.SaveImage(rgbaImg, "bloom.png", "./assets/bloom")
 	// image.SaveImage(controlImg, "control-bloom.png", "./assets/bloom")
