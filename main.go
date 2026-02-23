@@ -1,17 +1,15 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/afnank19/fern/internal/gui"
 )
 
 func main() {
-	fmt.Println("Hello, Fern! We will be processing images!")
+	// fmt.Println("Hello, Fern! We will be processing images!")
 
-	// _, rgbaImg := image.LoadImage("./assets/samples/trail.JPG")
+	// _, rgbaImg := image.LoadImage("./assets/samples/tail.JPG")
 
-	// composite.Bloom(rgbaImg, 0.21, 0.48, 0.35)
+	// composite.Bloom(rgbaImg, 0.95, 0.5, 0.8)
 	// // noise.Gaussian(rgbaImg, 10, true)
 	// geometric.ChromaticAberration(rgbaImg, 2, 0)
 
