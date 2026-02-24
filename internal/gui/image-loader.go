@@ -5,38 +5,38 @@ import (
 	"io"
 
 	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/storage"
 )
 
-// openImageDialog creates a file-open dialog, decodes the image, and updates the canvas.Image.
-func openImageDialog(parent fyne.Window, imgCanvas *canvas.Image) {
+// openImageDialog presents a file picker and calls onLoaded with the decoded
+// image on success. Decoding is kept here so the rest of the GUI stays clean.
+func openImageDialog(w fyne.Window, onLoaded func(*image.RGBA)) {
 	fd := dialog.NewFileOpen(func(reader fyne.URIReadCloser, err error) {
-		if err != nil {
-			dialog.ShowError(err, parent)
-			return
-		}
-		if reader == nil { // user cancelled
+		if err != nil || reader == nil {
 			return
 		}
 		defer reader.Close()
 
-		decoded, _, decodeErr := decodeImage(reader)
-		if decodeErr != nil {
-			dialog.ShowError(decodeErr, parent)
+		decoded, _, err := image.Decode(reader)
+		if err != nil {
+			dialog.ShowError(err, w)
 			return
 		}
 
-		// Update canvas image and refresh UI.
-		// Assign the decoded image (image.Image) and refresh to show it:
-		imgCanvas.Image = decoded
-		imgCanvas.FillMode = canvas.ImageFillContain
-		imgCanvas.Refresh()
-	}, parent)
+		// Normalise to *image.RGBA so processing functions always get the same type.
+		bounds := decoded.Bounds()
+		rgba := image.NewRGBA(bounds)
+		for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+			for x := bounds.Min.X; x < bounds.Max.X; x++ {
+				rgba.Set(x, y, decoded.At(x, y))
+			}
+		}
 
-	// Limit selectable files to common image extensions
-	fd.SetFilter(storage.NewExtensionFileFilter([]string{".png", ".jpg", ".jpeg", ".gif", ".webp"}))
+		onLoaded(rgba)
+	}, w)
+
+	fd.SetFilter(storage.NewExtensionFileFilter([]string{".png", ".jpg", ".jpeg"}))
 	fd.Show()
 }
 
