@@ -10,7 +10,7 @@ import (
 // Adding a new control is as simple as adding a field here and a step in applyPipeline.
 type Adjustments struct {
 	Brightness int
-	// Contrast   int
+	Contrast   int
 	// Saturation int
 }
 
@@ -19,6 +19,9 @@ type Adjustments struct {
 func applyPipeline(img *image.RGBA, adj Adjustments) {
 	if adj.Brightness != 0 {
 		point.BrightnessMultiThread(img, adj.Brightness)
+	}
+	if adj.Contrast != 0 {
+		point.FastSigmoidalContrast(img, float64(adj.Contrast))
 	}
 	// processing.Contrast(img, adj.Contrast)
 }

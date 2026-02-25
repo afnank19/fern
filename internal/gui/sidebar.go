@@ -18,6 +18,7 @@ type Sidebar struct {
 	onChange     func(Adjustments)
 
 	brightnessSlider *widget.Slider
+	contrastSlider *widget.Slider
 }
 
 func NewSidebar(onChange func(Adjustments)) *Sidebar {
@@ -33,7 +34,7 @@ func (s *Sidebar) build() {
 	s.brightnessSlider.Step = 1
 	s.brightnessSlider.Value = 0
 
-	debouncedChange := debounce(40*time.Millisecond, func() {
+	debouncedChange := debounce(10*time.Millisecond, func() {
     	s.onChange(s.adjustments)
 	})
 
@@ -44,12 +45,25 @@ func (s *Sidebar) build() {
 		debouncedChange()
 	}
 
+	contrastLabel := widget.NewLabel("Contrast: 0")
+	s.contrastSlider = widget.NewSlider(-100, 100)
+	s.contrastSlider.Step = 1
+	s.contrastSlider.Value = 0
+
+	s.contrastSlider.OnChanged = func(v float64) {
+		s.adjustments.Contrast = int(v)
+		contrastLabel.SetText(fmt.Sprintf("Contrast: %+d", int(v)))
+		debouncedChange()
+	}
+
 	s.container = container.NewVBox(
 		widget.NewSeparator(),
 		widget.NewLabelWithStyle("Adjustments", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		widget.NewSeparator(),
 		brightnessLabel,
 		s.brightnessSlider,
+		contrastLabel,
+		s.contrastSlider,
 		// add more controls here as you implement them
 	)
 }
@@ -74,6 +88,8 @@ func debounce(d time.Duration, f func()) func() {
         if timer != nil {
             timer.Stop()
         }
-        timer = time.AfterFunc(d, f)
+        timer = time.AfterFunc(d, func() {
+            fyne.Do(f)
+        })
     }
 }

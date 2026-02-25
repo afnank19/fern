@@ -25,6 +25,7 @@ func openImageDialog(w fyne.Window, onLoaded func(*image.RGBA)) {
 		}
 
 		// Normalise to *image.RGBA so processing functions always get the same type.
+		// TODO: Compare with LoadImage from local img pkg
 		bounds := decoded.Bounds()
 		rgba := image.NewRGBA(bounds)
 		for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
