@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"fmt"
 	"image"
 
 	"fyne.io/fyne/v2"
@@ -76,6 +77,11 @@ func (v *ImageView) ApplyAdjustments(adj Adjustments) {
 
 	v.canvasImage.Image = v.working
 	v.canvasImage.Refresh()
+}
+
+func ApplyAdjustmentsOnImage(adj Adjustments, img *image.RGBA) {
+	fmt.Println("Applying Adj on original image", adj)
+	applyPipeline(img, adj)
 }
 
 // CanvasObject returns the displayable Fyne object.

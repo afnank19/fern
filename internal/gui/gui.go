@@ -27,14 +27,19 @@ func NewApp() *App {
 		imageView.ApplyAdjustments(adj)
 	})
 
-	openBtn := widget.NewButton("Open...", func() {
+	openBtn := widget.NewButton("Open Image", func() {
 		openImageDialog(w, func(img *image.RGBA) {
 			imageView.LoadImage(img)
 			sidebar.Reset()
 		})
 	})
 
-	topBar := container.NewHBox(openBtn)
+	saveBtn := widget.NewButton("Export Image", func() {
+		ApplyAdjustmentsOnImage(sidebar.adjustments, imageView.original)
+		saveImageDialog(w, imageView.original)
+	})
+
+	topBar := container.NewHBox(openBtn, saveBtn)
 
 	split := container.NewHSplit(
 		imageView.CanvasObject(),

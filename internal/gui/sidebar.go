@@ -127,6 +127,8 @@ func (s *Sidebar) buildEffectsTab() fyne.CanvasObject {
 	thresholdSlider := widget.NewSlider(0, 1)
 	thresholdSlider.Step = 0.01
 	thresholdSlider.Value = 0.95
+	// Have to initialize the value otherwise it remains at 0
+	s.adjustments.BloomAdj.Threshold = thresholdSlider.Value
 
 	thresholdSlider.OnChanged = func(v float64) {
 		s.adjustments.BloomAdj.Threshold = v

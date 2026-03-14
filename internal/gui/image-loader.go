@@ -2,6 +2,7 @@ package gui
 
 import (
 	"image"
+	"image/png"
 	"io"
 
 	"fyne.io/fyne/v2"
@@ -38,6 +39,25 @@ func openImageDialog(w fyne.Window, onLoaded func(*image.RGBA)) {
 	}, w)
 
 	fd.SetFilter(storage.NewExtensionFileFilter([]string{".png", ".jpg", ".jpeg"}))
+	fd.Show()
+}
+
+func saveImageDialog(w fyne.Window, img *image.RGBA) {
+	fd := dialog.NewFileSave(func(writer fyne.URIWriteCloser, err error) {
+		if err != nil || writer == nil {
+			return
+		}
+		defer writer.Close()
+
+		err = png.Encode(writer, img)
+		if err != nil {
+			dialog.ShowError(err, w)
+			return
+		}
+	}, w)
+
+	fd.SetFileName("image.png")
+	fd.SetFilter(storage.NewExtensionFileFilter([]string{".png"}))
 	fd.Show()
 }
 
