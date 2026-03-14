@@ -90,19 +90,21 @@ func Bloom(img *image.RGBA, intensity ,threshold, blurAmt float64) {
 			a := img.Pix[i+3]
 
 			lum := point.LuminancePhotoshop(r, g, b)
-			linearLum := utils.SRGBToLinear(lum)
+			// linearLum := utils.SRGBToLinear(lum)
 			// IMPORTANT: convert either on to the other properly, not just type conv
-			if (lum < utils.FloatToUint8(threshold)) {
-				// fmt.Println("lum", lum, "thre", utils.FloatToUint8(threshold))
-				// Softer bloom threshold
-				t := linearLum/1.0
-				w := math.Max(0, (t-threshold)/(1-threshold))
+			// Work in a consistent space - compare float luminance against float threshold
+			lumF := float64(lum) / 255.0
 
-				r = uint8(float64(r) * w)
-				g = uint8(float64(g) * w)
-				b = uint8(float64(b) * w)
+			if lumF < threshold {
+			    // Soft knee: pixels below threshold get blended down
+			    // w will be 0 at lumF=0, and approach 1 as lumF approaches threshold
+			    knee := threshold * 0.5 // how wide the soft transition is, tweak as needed
+			    w := math.Max(0, (lumF - (threshold - knee)) / knee)
+
+			    r = uint8(float64(r) * w)
+			    g = uint8(float64(g) * w)
+			    b = uint8(float64(b) * w)
 			}
-
 			// brightIndex := brightPass.PixOffset(x, y)
 			brightPass.Pix[i + 0] = r
 			brightPass.Pix[i + 1] = g
@@ -128,7 +130,7 @@ func Bloom(img *image.RGBA, intensity ,threshold, blurAmt float64) {
 		downsampledBlurredPasses = append(downsampledBlurredPasses, downsampledBlurred)
 
 		activeBrightPass = localImg.CopyRGBA(downsampledBlurred)
-		levelWeights = append(levelWeights, levelWeights[i] / 1.0)
+		levelWeights = append(levelWeights, levelWeights[i] / 2.0)
 	}
 
 	// fmt.Println(len(levelWeights), levelWeights)
@@ -161,7 +163,7 @@ func Bloom(img *image.RGBA, intensity ,threshold, blurAmt float64) {
 			}
 		}
 
-		// localImg.SaveImage(nextDSI, fmt.Sprintf("up-sample-%dx.png",idx*2), "./assets/bloom")
+		localImg.SaveImage(nextDSI, fmt.Sprintf("up-sample-%dx.png",idx*2), "./assets/bloom")
 	}
 
 	// The first image in this array is 1 Downsample2x lower than our original image

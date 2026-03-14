@@ -19,3 +19,27 @@ func SRGBToLinear(c uint8) float64 {
 	}
 	return math.Pow((val+0.055)/1.055, 2.4)
 }
+
+// TODO: remove
+// func SliceShift() {
+// 	temp := []int{1, 2, 2, 2, 3, 2, 2, 2, 5, 2, 2, 2, 7}
+// 	pos := 3
+// 	offset := 4
+// 	n := len(temp)
+
+// 	for i := n - 1; i >= offset*pos; i -= offset {
+// 		newVal := temp[i-(offset*pos)]
+// 		temp[i] = newVal
+// 	}
+
+// 	// if (offset * pos > n) {
+// 	// 	panic("beabadoobee", )
+// 	// }
+
+// 	for i := 0; i < offset*pos; i += offset {
+// 		temp[i] = 0
+// 	}
+
+// 	// SliceShiftWithZeroes(slice, 2)
+// 	// SliceShiftEvery4thWithZeroes(slice, 2)
+// }
