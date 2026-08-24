@@ -35,11 +35,13 @@ func NewApp() *App {
 	})
 
 	saveBtn := widget.NewButton("Export Image", func() {
-		ApplyAdjustmentsOnImage(sidebar.adjustments, imageView.original)
-		saveImageDialog(w, imageView.original)
+		imageView.ApplyAdjustmentsOnImage(sidebar.adjustments)
+		saveImageDialog(w, imageView.render)
 	})
 
-	topBar := container.NewHBox(openBtn, saveBtn)
+	title := widget.NewLabel("Retarted Photoshop")
+
+	topBar := container.NewHBox(openBtn, saveBtn, title)
 
 	split := container.NewHSplit(
 		imageView.CanvasObject(),

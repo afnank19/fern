@@ -7,6 +7,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"github.com/afnank19/fern/filter"
+	fernimage "github.com/afnank19/fern/image"
 )
 
 // ImageView holds the displayed canvas and the original unmodified image.
@@ -16,6 +17,7 @@ type ImageView struct {
 	original    *image.RGBA
 	display     *image.RGBA
 	working     *image.RGBA
+	render      *image.RGBA
 }
 
 func NewImageView() *ImageView {
@@ -30,7 +32,11 @@ func NewImageView() *ImageView {
 
 func (v *ImageView) LoadImage(img *image.RGBA) {
 	v.original = img
-	v.display = v.original
+	// Each buffer must own its pixels: display gets mutated by the downsample
+	// loop, and render is reset from original on every export. Aliasing them
+	// to original would bake adjustments into the base image.
+	v.display = fernimage.CopyRGBA(img)
+	v.render = fernimage.CopyRGBA(img)
 
 	canvas := fyne.CurrentApp().Driver().CanvasForObject(v.canvasImage)
 	if canvas == nil {
@@ -79,9 +85,13 @@ func (v *ImageView) ApplyAdjustments(adj Adjustments) {
 	v.canvasImage.Refresh()
 }
 
-func ApplyAdjustmentsOnImage(adj Adjustments, img *image.RGBA) {
+func (v *ImageView) ApplyAdjustmentsOnImage(adj Adjustments) {
 	fmt.Println("Applying Adj on original image", adj)
-	applyPipeline(img, adj)
+	// render owns its own pixels, so this is a real reset from the pristine
+	// original before applying the pipeline at full resolution. Repeated
+	// exports therefore never stack adjustments.
+	copy(v.render.Pix, v.original.Pix)
+	applyPipeline(v.render, adj)
 }
 
 // CanvasObject returns the displayable Fyne object.

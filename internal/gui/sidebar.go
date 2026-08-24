@@ -46,7 +46,7 @@ func (s *Sidebar) build() {
 	}
 
 	contrastLabel := widget.NewLabel("Contrast: 0")
-	s.contrastSlider = widget.NewSlider(-10, 10)
+	s.contrastSlider = widget.NewSlider(0, 10)
 	s.contrastSlider.Step = 1
 	s.contrastSlider.Value = 0
 
