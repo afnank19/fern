@@ -15,7 +15,7 @@ type Adjustments struct {
 	Contrast   int
 	// Saturation int
 	BloomAdj BloomAdjustments
-	Noise NoiseAdjustments
+	Noise    NoiseAdjustments
 }
 
 type BloomAdjustments struct {
@@ -26,7 +26,7 @@ type BloomAdjustments struct {
 
 type NoiseAdjustments struct {
 	NoiseAmt float64
-	PerChan bool
+	PerChan  bool
 }
 
 // applyPipeline runs every adjustment in a deterministic order.
