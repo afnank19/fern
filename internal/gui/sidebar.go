@@ -76,6 +76,7 @@ func (s *Sidebar) buildTabs() fyne.CanvasObject {
 	return tabs
 }
 
+// This is building the options for each tab
 func (s *Sidebar) buildOpControls(kind OpKind, def opDef) []fyne.CanvasObject {
 	items := []fyne.CanvasObject{
 		utils.BuildTitleLabel(def.Label),
