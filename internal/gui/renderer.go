@@ -20,8 +20,8 @@ type renderer struct {
 
 	kick chan struct{} // size 1: non-blocking send signals "a render is wanted"
 
-	mu  sync.Mutex // guards adj
-	adj Adjustments
+	mu sync.Mutex // guards st
+	st RenderState
 
 	gen atomic.Uint64 // bumped when the base image changes; invalidates in-flight frames
 }
@@ -35,18 +35,18 @@ func newRenderer(view *ImageView) *renderer {
 	return r
 }
 
-// request schedules a re-render with the given adjustments. Calls made while
-// a render is running collapse into one follow-up render using the latest
-// adjustments.
-func (r *renderer) request(adj Adjustments) {
+// request schedules a re-render with the given state. Calls made while a
+// render is running collapse into one follow-up render using the latest
+// state.
+func (r *renderer) request(st RenderState) {
 	r.mu.Lock()
-	r.adj = adj
+	r.st = st
 	r.mu.Unlock()
 
 	select {
 	case r.kick <- struct{}{}:
 	default:
-		// Already queued or rendering; the worker re-reads adj when done.
+		// Already queued or rendering; the worker re-reads st when done.
 	}
 }
 
@@ -58,14 +58,14 @@ func (r *renderer) invalidate() {
 func (r *renderer) loop() {
 	for range r.kick {
 		r.mu.Lock()
-		adj := r.adj
+		st := r.st
 		r.mu.Unlock()
 
-		r.renderFrame(adj)
+		r.renderFrame(st)
 	}
 }
 
-func (r *renderer) renderFrame(adj Adjustments) {
+func (r *renderer) renderFrame(st RenderState) {
 	v := r.view
 
 	v.mu.Lock()
@@ -78,8 +78,7 @@ func (r *renderer) renderFrame(adj Adjustments) {
 		return
 	}
 
-	copy(scratch.Pix, base.Pix)
-	applyPipeline(scratch, adj)
+	execute(scratch, base, st)
 
 	fyne.Do(func() {
 		if r.gen.Load() != gen {
