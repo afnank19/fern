@@ -23,8 +23,14 @@ func NewApp() *App {
 
 	imageView := NewImageView()
 
-	sidebar := NewSidebar(func(adj Adjustments) {
-		imageView.ApplyAdjustments(adj)
+	var sidebar *Sidebar
+	sidebar = NewSidebar(SidebarCallbacks{
+		OnParam: imageView.SetParam,
+		OnCommit: func(kind OpKind) {
+			imageView.Commit(kind)
+			sidebar.ResetOp(kind)
+		},
+		OnUndo: imageView.Undo,
 	})
 
 	openBtn := widget.NewButton("Open Image", func() {
@@ -35,8 +41,7 @@ func NewApp() *App {
 	})
 
 	saveBtn := widget.NewButton("Export Image", func() {
-		imageView.ApplyAdjustmentsOnImage(sidebar.adjustments)
-		saveImageDialog(w, imageView.render)
+		saveImageDialog(w, imageView.PrepareExport())
 	})
 
 	title := widget.NewLabel("Retarted Photoshop")

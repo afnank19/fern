@@ -2,188 +2,156 @@ package gui
 
 import (
 	"fmt"
-	"sync"
-	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
+
 	"github.com/afnank19/fern/utils"
 )
 
-// Sidebar owns the sliders and notifies the caller via onChange
-// whenever the user adjusts a value.
-type Sidebar struct {
-	container   *fyne.Container
-	adjustments Adjustments
-	onChange    func(Adjustments)
-
-	brightnessSlider *widget.Slider
-	contrastSlider   *widget.Slider
+// SidebarCallbacks decouple the sidebar from image state: it reports user
+// intent, and the owner decides what happens.
+type SidebarCallbacks struct {
+	OnParam  func(kind OpKind, key string, val float64) // slider/check moved
+	OnCommit func(kind OpKind)                          // an op's Apply button pressed
+	OnUndo   func()                                     // undo last committed op
 }
 
-func NewSidebar(onChange func(Adjustments)) *Sidebar {
-	s := &Sidebar{onChange: onChange}
-	s.build()
+// Sidebar renders editing controls generated from the op registry. It holds
+// no image state: values flow out through callbacks, and ResetOp/Reset let
+// the owner snap controls back to defaults (after commit or image load).
+type Sidebar struct {
+	container *fyne.Container
+	cb        SidebarCallbacks
+
+	controls map[ctlKey]ctlWidgets
+}
+
+type ctlKey struct {
+	kind OpKind
+	key  string
+}
+
+type ctlWidgets struct {
+	label  *widget.Label
+	slider *widget.Slider
+	check  *widget.Check
+}
+
+func NewSidebar(cb SidebarCallbacks) *Sidebar {
+	s := &Sidebar{
+		cb:       cb,
+		controls: make(map[ctlKey]ctlWidgets),
+	}
+	s.container = container.NewVBox(
+		widget.NewButton("Undo", s.cb.OnUndo),
+		s.buildTabs(),
+	)
 	return s
 }
 
-func (s *Sidebar) build() {
-	brightnessLabel := widget.NewLabel("Brightness: 0")
+// buildTabs generates tabs from the registry. Tab order follows first
+// appearance in registryOrder; control order follows each op's declared
+// Params. Tabs hold plain VBoxes: scrolling is handled once, by the outer
+// scroll in CanvasObject.
+func (s *Sidebar) buildTabs() fyne.CanvasObject {
+	tabOrder := make([]string, 0, 2)
+	catContents := make(map[string][]fyne.CanvasObject)
 
-	s.brightnessSlider = widget.NewSlider(-100, 100)
-	s.brightnessSlider.Step = 1
-	s.brightnessSlider.Value = 0
+	for _, kind := range registryOrder {
+		def := registry[kind]
 
-	debouncedChange := debounce(10*time.Millisecond, func() {
-		s.onChange(s.adjustments)
-	})
-
-	s.brightnessSlider.OnChanged = func(v float64) {
-		s.adjustments.Brightness = int(v)
-		brightnessLabel.SetText(fmt.Sprintf("Brightness: %+d", int(v)))
-		debouncedChange()
+		if _, seen := catContents[def.Category]; !seen {
+			tabOrder = append(tabOrder, def.Category)
+		}
+		catContents[def.Category] = append(catContents[def.Category], s.buildOpControls(kind, def)...)
 	}
 
-	contrastLabel := widget.NewLabel("Contrast: 0")
-	s.contrastSlider = widget.NewSlider(0, 10)
-	s.contrastSlider.Step = 1
-	s.contrastSlider.Value = 0
-
-	s.contrastSlider.OnChanged = func(v float64) {
-		s.adjustments.Contrast = int(v)
-		contrastLabel.SetText(fmt.Sprintf("Contrast: %+d", int(v)))
-		debouncedChange()
+	tabs := container.NewAppTabs()
+	for _, cat := range tabOrder {
+		tabs.Append(container.NewTabItem(cat, container.NewVBox(catContents[cat]...)))
 	}
-
-	// --- BASIC TAB ---
-	basicTab := container.NewVBox(
-		widget.NewLabelWithStyle("Basic Adjustments", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
-		widget.NewSeparator(),
-		brightnessLabel,
-		s.brightnessSlider,
-		contrastLabel,
-		s.contrastSlider,
-	)
-
-	tabs := container.NewAppTabs(
-		container.NewTabItem("Basic", basicTab),
-		// container.NewTabItem("Color", colorTab),
-		container.NewTabItem("Effects", s.buildEffectsTab()),
-	)
-
 	tabs.SetTabLocation(container.TabLocationTop)
+	return tabs
+}
 
-	if s.container == nil {
-		s.container = container.NewVBox(tabs)
-	} else {
-		s.container.Objects = []fyne.CanvasObject{tabs}
-		s.container.Refresh()
+func (s *Sidebar) buildOpControls(kind OpKind, def opDef) []fyne.CanvasObject {
+	items := []fyne.CanvasObject{
+		utils.BuildTitleLabel(def.Label),
+		widget.NewSeparator(),
+	}
+
+	for _, p := range def.Params {
+		k := ctlKey{kind: kind, key: p.Key}
+		label := widget.NewLabel(formatParam(p, p.Default))
+		w := ctlWidgets{label: label}
+
+		switch p.Widget {
+		case CheckWidget:
+			check := widget.NewCheck(p.Label, nil)
+			check.SetChecked(p.Default >= 0.5)
+			check.OnChanged = func(on bool) {
+				val := 0.0
+				if on {
+					val = 1
+				}
+				s.cb.OnParam(kind, p.Key, val)
+			}
+			w.check = check
+			items = append(items, check)
+		default:
+			slider := widget.NewSlider(p.Min, p.Max)
+			slider.Step = p.Step
+			slider.Value = p.Default
+			slider.OnChanged = func(v float64) {
+				label.SetText(formatParam(p, v))
+				s.cb.OnParam(kind, p.Key, v)
+			}
+			w.slider = slider
+			items = append(items, label, slider)
+		}
+		s.controls[k] = w
+	}
+
+	if !def.Live {
+		items = append(items, widget.NewButton("Apply "+def.Label, func() {
+			s.cb.OnCommit(kind)
+		}))
+	}
+	return items
+}
+
+// ResetOp snaps one op's controls back to their defaults without firing
+// OnChanged (Fyne's SetValue/SetChecked only update the widgets).
+func (s *Sidebar) ResetOp(kind OpKind) {
+	for _, p := range registry[kind].Params {
+		w, ok := s.controls[ctlKey{kind: kind, key: p.Key}]
+		if !ok {
+			continue
+		}
+		switch {
+		case w.check != nil:
+			w.check.SetChecked(p.Default >= 0.5)
+		case w.slider != nil:
+			w.slider.SetValue(p.Default)
+		}
+		w.label.SetText(formatParam(p, p.Default))
 	}
 }
 
-// Reset returns all sliders to their zero position (does not trigger onChange).
+// Reset snaps every control back to defaults.
 func (s *Sidebar) Reset() {
-	s.adjustments = Adjustments{}
-	s.brightnessSlider.SetValue(0)
-	s.build()
+	for _, kind := range registryOrder {
+		s.ResetOp(kind)
+	}
+}
+
+func formatParam(p Param, val float64) string {
+	return fmt.Sprintf("%s: %g", p.Label, val)
 }
 
 // CanvasObject returns the displayable Fyne object.
 func (s *Sidebar) CanvasObject() fyne.CanvasObject {
 	return container.NewVScroll(s.container)
-}
-
-func debounce(d time.Duration, f func()) func() {
-	var mu sync.Mutex
-	var timer *time.Timer
-	return func() {
-		mu.Lock()
-		defer mu.Unlock()
-		if timer != nil {
-			timer.Stop()
-		}
-		timer = time.AfterFunc(d, func() {
-			fyne.Do(f)
-		})
-	}
-}
-
-func (s *Sidebar) buildEffectsTab() fyne.CanvasObject {
-	intensityLabel := widget.NewLabel("Intensity: 0")
-
-	intensitySlider := widget.NewSlider(0, 1)
-	intensitySlider.Step = 0.01
-	intensitySlider.Value = 0
-
-	intensitySlider.OnChanged = func(v float64) {
-		s.adjustments.BloomAdj.Intensity = v
-		intensityLabel.SetText(fmt.Sprintf("Intensity: %+f", v))
-		// debouncedChange()
-	}
-
-	thresholdLabel := widget.NewLabel("Threshold: 0.95")
-
-	thresholdSlider := widget.NewSlider(0, 1)
-	thresholdSlider.Step = 0.01
-	thresholdSlider.Value = 0.95
-	// Have to initialize the value otherwise it remains at 0
-	s.adjustments.BloomAdj.Threshold = thresholdSlider.Value
-
-	thresholdSlider.OnChanged = func(v float64) {
-		s.adjustments.BloomAdj.Threshold = v
-		thresholdLabel.SetText(fmt.Sprintf("Threshold: %+f", v))
-		// debouncedChange()
-	}
-
-	blurAmtLabel := widget.NewLabel("Blur Amount: 0")
-	blurAmtSlider := widget.NewSlider(0, 1)
-	blurAmtSlider.Step = 0.01
-	blurAmtSlider.Value = 0
-
-	blurAmtSlider.OnChanged = func(v float64) {
-		s.adjustments.BloomAdj.BlurAmt = v
-		blurAmtLabel.SetText(fmt.Sprintf("Blur Amount: %+f", v))
-	}
-
-	// No idea if this will freeze the UI, may need to update the func a bit to run in another thread
-	bloomApplyButton := widget.NewButton("Apply Bloom", func() {
-		s.onChange(s.adjustments)
-	})
-
-	noiseLabel := widget.NewLabel("Noise: 0")
-
-	noiseSlider := widget.NewSlider(0, 50)
-	noiseSlider.Step = 1
-	noiseSlider.Value = 0
-
-	debouncedChange := debounce(10*time.Millisecond, func() {
-		s.onChange(s.adjustments)
-	})
-
-	noiseSlider.OnChanged = func(v float64) {
-		s.adjustments.Noise.NoiseAmt = v
-		noiseLabel.SetText(fmt.Sprintf("Intensity: %+f", v))
-		debouncedChange()
-	}
-
-	noisePerChanButton := widget.NewCheck("Per Channel", func(checked bool) {
-		s.adjustments.Noise.PerChan = checked
-		debouncedChange()
-	})
-
-	return container.NewVBox(
-		utils.BuildTitleLabel("Bloom"),
-		intensityLabel,
-		intensitySlider,
-		thresholdLabel,
-		thresholdSlider,
-		blurAmtLabel,
-		blurAmtSlider,
-		bloomApplyButton,
-		utils.BuildTitleLabel("Noise"),
-		noiseLabel,
-		noiseSlider,
-		noisePerChanButton,
-	)
 }
