@@ -4,6 +4,7 @@ import (
 	"image"
 
 	"github.com/afnank19/fern/composite"
+	"github.com/afnank19/fern/geometric"
 	"github.com/afnank19/fern/noise"
 	"github.com/afnank19/fern/point"
 )
@@ -12,10 +13,11 @@ import (
 type OpKind string
 
 const (
-	OpBrightness OpKind = "brightness"
-	OpContrast   OpKind = "contrast"
-	OpBloom      OpKind = "bloom"
-	OpNoise      OpKind = "noise"
+	OpBrightness          OpKind = "brightness"
+	OpContrast            OpKind = "contrast"
+	OpBloom               OpKind = "bloom"
+	OpNoise               OpKind = "noise"
+	OpChromaticAberration OpKind = "chromatic-aberration"
 )
 
 // Params holds one operation's parameter values, keyed by name.
@@ -60,7 +62,7 @@ type opDef struct {
 }
 
 // registryOrder fixes canonical execution order; map iteration is unordered.
-var registryOrder = []OpKind{OpBrightness, OpContrast, OpBloom, OpNoise}
+var registryOrder = []OpKind{OpBrightness, OpContrast, OpBloom, OpChromaticAberration, OpNoise}
 
 var registry = map[OpKind]opDef{
 	OpBrightness: {
@@ -82,7 +84,7 @@ var registry = map[OpKind]opDef{
 		Category: "Basic",
 		Live:     true,
 		Params: []Param{
-			{Key: "factor", Label: "Factor", Min: -10, Max: 10, Step: 1},
+			{Key: "factor", Label: "Factor", Min: 0, Max: 10, Step: 1},
 		},
 		Apply: func(img *image.RGBA, p Params) {
 			point.FastSigmoidalContrast(img, p["factor"])
@@ -117,6 +119,21 @@ var registry = map[OpKind]opDef{
 				return
 			}
 			noise.Gaussian(img, p["amount"], p["perChan"] >= 0.5)
+		},
+	},
+	OpChromaticAberration: {
+		Label:    "Chromatic Aberration",
+		Category: "Effects",
+		Live:     false, // pixel-shift op → staged until Apply
+		Params: []Param{
+			{Key: "strength", Label: "Strength", Min: 1, Max: 10, Step: 1},
+			{Key: "fringeType", Label: "Fringe Type", Min: 0, Max: 2, Step: 1},
+		},
+		Apply: func(img *image.RGBA, p Params) {
+			if p["strength"] < 1 {
+				return
+			}
+			geometric.ChromaticAberration(img, int(p["strength"]), int(p["fringeType"]))
 		},
 	},
 }
