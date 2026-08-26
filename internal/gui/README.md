@@ -18,6 +18,7 @@ to a table in `pipeline.go` and nothing else.
 | `image-view.go` | Owns all image buffers and editing state (op stack, pending values). Exposes `SetParam / Commit / Undo / Reset`. | [architecture.md](docs/architecture.md) |
 | `renderer.go` | One background goroutine that renders preview frames without freezing the UI. | [concurrency.md](docs/concurrency.md) |
 | `sidebar.go` | Builds sliders/checkboxes/buttons *automatically* from the registry. Holds no image state. | [architecture.md](docs/architecture.md) |
+| `theme.go` | Custom dark theme: palette constants, forced monospace font, square corners. | |
 
 ## How to add a new effect
 

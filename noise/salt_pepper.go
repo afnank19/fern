@@ -1,7 +1,6 @@
 package noise
 
 import (
-	"fmt"
 	"image"
 	"math/rand"
 )
@@ -10,7 +9,6 @@ func SaltAndPepper(img *image.RGBA, p float64) {
 	bounds := img.Bounds()
 
 	salt_p := p / 2.0
-	fmt.Println("Salt Probability", salt_p)
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 			i := img.PixOffset(x, y)
