@@ -109,7 +109,7 @@ var registry = map[OpKind]opDef{
 	OpNoise: {
 		Label:    "Gaussian Noise",
 		Category: "Effects",
-		Live:     false,
+		Live:     true,
 		Params: []Param{
 			{Key: "amount", Label: "Amount", Min: 0, Max: 50, Step: 1},
 			{Key: "perChan", Label: "Per Channel", Min: 0, Max: 1, Step: 1, Default: 0, Widget: CheckWidget},
@@ -124,9 +124,9 @@ var registry = map[OpKind]opDef{
 	OpChromaticAberration: {
 		Label:    "Chromatic Aberration",
 		Category: "Effects",
-		Live:     false, // pixel-shift op → staged until Apply
+		Live:     true, // pixel-shift op → staged until Apply
 		Params: []Param{
-			{Key: "strength", Label: "Strength", Min: 1, Max: 10, Step: 1},
+			{Key: "strength", Label: "Strength", Min: 0, Max: 10, Step: 1},
 			{Key: "fringeType", Label: "Fringe Type", Min: 0, Max: 2, Step: 1},
 		},
 		Apply: func(img *image.RGBA, p Params) {

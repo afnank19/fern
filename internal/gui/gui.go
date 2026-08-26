@@ -20,6 +20,7 @@ type App struct {
 func NewApp() *App {
 	a := app.NewWithID("fern-image-processor")
 	w := a.NewWindow("Fern")
+	a.Settings().SetTheme(newFernTheme())
 
 	imageView := NewImageView()
 
