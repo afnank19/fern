@@ -4,6 +4,7 @@ import (
 	"image"
 
 	"github.com/afnank19/fern/composite"
+	"github.com/afnank19/fern/filter"
 	"github.com/afnank19/fern/geometric"
 	"github.com/afnank19/fern/noise"
 	"github.com/afnank19/fern/point"
@@ -15,9 +16,18 @@ type OpKind string
 const (
 	OpBrightness          OpKind = "brightness"
 	OpContrast            OpKind = "contrast"
+	OpInvert              OpKind = "invert"
+	OpThreshold           OpKind = "threshold"
+	OpGrayscale           OpKind = "grayscale"
 	OpBloom               OpKind = "bloom"
-	OpNoise               OpKind = "noise"
 	OpChromaticAberration OpKind = "chromatic-aberration"
+	OpBoxBlur             OpKind = "box-blur"
+	OpGaussianBlur        OpKind = "gaussian-blur"
+	OpSharpen             OpKind = "sharpen"
+	OpUnsharpMask         OpKind = "unsharp-mask"
+	OpNoise               OpKind = "noise"
+	OpUniformNoise        OpKind = "uniform-noise"
+	OpSaltPepper          OpKind = "salt-pepper"
 )
 
 // Params holds one operation's parameter values, keyed by name.
@@ -62,7 +72,13 @@ type opDef struct {
 }
 
 // registryOrder fixes canonical execution order; map iteration is unordered.
-var registryOrder = []OpKind{OpBrightness, OpContrast, OpBloom, OpChromaticAberration, OpNoise}
+var registryOrder = []OpKind{
+	OpBrightness, OpContrast, OpInvert, OpThreshold, OpGrayscale,
+	OpBloom, OpChromaticAberration,
+	OpBoxBlur, OpGaussianBlur,
+	OpSharpen, OpUnsharpMask,
+	OpNoise, OpUniformNoise, OpSaltPepper,
+}
 
 var registry = map[OpKind]opDef{
 	OpBrightness: {
@@ -90,6 +106,33 @@ var registry = map[OpKind]opDef{
 			point.FastSigmoidalContrast(img, p["factor"])
 		},
 	},
+	OpInvert: {
+		Label:    "Invert",
+		Category: "Basic",
+		Live:     false,
+		Apply: func(img *image.RGBA, _ Params) {
+			point.Invert(img)
+		},
+	},
+	OpThreshold: {
+		Label:    "Threshold",
+		Category: "Basic",
+		Live:     true,
+		Params: []Param{
+			{Key: "level", Label: "Level", Min: 0, Max: 255, Step: 1, Default: 128},
+		},
+		Apply: func(img *image.RGBA, p Params) {
+			point.Threshold(img, uint8(p["level"]))
+		},
+	},
+	OpGrayscale: {
+		Label:    "Grayscale",
+		Category: "Basic",
+		Live:     false,
+		Apply: func(img *image.RGBA, _ Params) {
+			point.PhotoshopGrayscale(img)
+		},
+	},
 	OpBloom: {
 		Label:    "Bloom",
 		Category: "Effects",
@@ -108,7 +151,7 @@ var registry = map[OpKind]opDef{
 	},
 	OpNoise: {
 		Label:    "Gaussian Noise",
-		Category: "Effects",
+		Category: "Noise",
 		Live:     true,
 		Params: []Param{
 			{Key: "amount", Label: "Amount", Min: 0, Max: 50, Step: 1},
@@ -124,7 +167,7 @@ var registry = map[OpKind]opDef{
 	OpChromaticAberration: {
 		Label:    "Chromatic Aberration",
 		Category: "Effects",
-		Live:     true, // pixel-shift op → staged until Apply
+		Live:     true,
 		Params: []Param{
 			{Key: "strength", Label: "Strength", Min: 0, Max: 10, Step: 1},
 			{Key: "fringeType", Label: "Fringe Type", Min: 0, Max: 2, Step: 1},
@@ -134,6 +177,94 @@ var registry = map[OpKind]opDef{
 				return
 			}
 			geometric.ChromaticAberration(img, int(p["strength"]), int(p["fringeType"]))
+		},
+	},
+	OpBoxBlur: {
+		Label:    "Box Blur",
+		Category: "Blur",
+		Live:     false,
+		Params: []Param{
+			{Key: "amount", Label: "Amount", Min: 0, Max: 1, Step: 0.01},
+		},
+		Apply: func(img *image.RGBA, p Params) {
+			if p["amount"] <= 0 {
+				return
+			}
+			// BoxBlur returns a new image; adapt to the in-place convention.
+			copy(img.Pix, filter.BoxBlur(img, p["amount"]).Pix)
+		},
+	},
+	OpGaussianBlur: {
+		Label:    "Gaussian Blur",
+		Category: "Blur",
+		Live:     false,
+		Params: []Param{
+			{Key: "amount", Label: "Amount", Min: 0, Max: 1, Step: 0.01},
+		},
+		Apply: func(img *image.RGBA, p Params) {
+			if p["amount"] <= 0 {
+				return
+			}
+			copy(img.Pix, filter.GaussianBlur(img, p["amount"]).Pix)
+		},
+	},
+	OpSharpen: {
+		Label:    "Sharpen",
+		Category: "Sharpen",
+		Live:     false,
+		Params: []Param{
+			{Key: "amount", Label: "Amount", Min: 0, Max: 2, Step: 0.01},
+		},
+		Apply: func(img *image.RGBA, p Params) {
+			if p["amount"] <= 0 {
+				return
+			}
+			copy(img.Pix, filter.Sharpen(img, p["amount"]).Pix)
+		},
+	},
+	OpUnsharpMask: {
+		Label:    "Unsharp Mask",
+		Category: "Sharpen",
+		Live:     false,
+		Params: []Param{
+			{Key: "blurAmt", Label: "Blur Amount", Min: 0, Max: 1, Step: 0.01},
+			{Key: "strength", Label: "Strength", Min: 0, Max: 3, Step: 0.01},
+		},
+		Apply: func(img *image.RGBA, p Params) {
+			if p["blurAmt"] <= 0 || p["strength"] <= 0 {
+				return
+			}
+			// UnsharpMask already mutates in place (blur runs internally).
+			filter.UnsharpMask(img, p["blurAmt"], p["strength"])
+		},
+	},
+	OpUniformNoise: {
+		Label:    "Uniform Noise",
+		Category: "Noise",
+		Live:     false,
+		Params: []Param{
+			{Key: "amount", Label: "Amount", Min: 0, Max: 50, Step: 1},
+			{Key: "perChan", Label: "Per Channel", Min: 0, Max: 1, Step: 1, Widget: CheckWidget},
+		},
+		Apply: func(img *image.RGBA, p Params) {
+			if p["amount"] <= 0 {
+				return
+			}
+			noise.Uniform(img, int(p["amount"]), p["perChan"] >= 0.5)
+		},
+	},
+	OpSaltPepper: {
+		Label:    "Salt & Pepper",
+		Category: "Noise",
+		Live:     false,
+		Params: []Param{
+			{Key: "density", Label: "Density", Min: 0, Max: 1, Step: 0.01},
+		},
+		Apply: func(img *image.RGBA, p Params) {
+			if p["density"] <= 0 || p["density"] > 1 {
+				return
+			}
+			noise.SaltAndPepper(img, p["density"])
 		},
 	},
 }
