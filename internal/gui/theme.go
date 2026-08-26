@@ -23,7 +23,7 @@ var (
 	colDisabledButton  = color.RGBA{R: 0x1d, G: 0x20, B: 0x26, A: 0xff}
 	colForeground      = color.RGBA{R: 0xe6, G: 0xe6, B: 0xe6, A: 0xff}
 	colPlaceholder     = color.RGBA{R: 0x6b, G: 0x70, B: 0x78, A: 0xff}
-	colSeparator       = color.RGBA{R: 0x26, G: 0x2a, B: 0x33, A: 0xff}
+	colSeparator       = color.RGBA{R: 0x44, G: 0x44, B: 0x44, A: 0xff}
 	colInputBorder     = color.RGBA{R: 0x33, G: 0x39, B: 0x45, A: 0xff}
 	colScrollBar       = color.RGBA{R: 0x3a, G: 0x3f, B: 0x4a, A: 0xff}
 	colSelection       = color.RGBA{R: 0x1f, G: 0x3a, B: 0x29, A: 0xff}
@@ -111,6 +111,8 @@ func (t *fernTheme) Size(name fyne.ThemeSizeName) float32 {
 	switch name {
 	case theme.SizeNameInputRadius, theme.SizeNameSelectionRadius, theme.SizeNameScrollBarRadius:
 		return 0
+	case theme.SizeNameInnerPadding:
+		return 4
 	}
 	return t.Theme.Size(name)
 }

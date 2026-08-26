@@ -19,6 +19,9 @@ const (
 	OpInvert              OpKind = "invert"
 	OpThreshold           OpKind = "threshold"
 	OpGrayscale           OpKind = "grayscale"
+	OpGrayscaleFast       OpKind = "grayscale-fast"
+	OpGrayscaleAvg        OpKind = "grayscale-avg"
+	OpGrayscalePhotoshop  OpKind = "grayscale-photoshop"
 	OpBloom               OpKind = "bloom"
 	OpChromaticAberration OpKind = "chromatic-aberration"
 	OpBoxBlur             OpKind = "box-blur"
@@ -74,6 +77,7 @@ type opDef struct {
 // registryOrder fixes canonical execution order; map iteration is unordered.
 var registryOrder = []OpKind{
 	OpBrightness, OpContrast, OpInvert, OpThreshold, OpGrayscale,
+	OpGrayscaleFast, OpGrayscaleAvg, OpGrayscalePhotoshop,
 	OpBloom, OpChromaticAberration,
 	OpBoxBlur, OpGaussianBlur,
 	OpSharpen, OpUnsharpMask,
@@ -126,8 +130,32 @@ var registry = map[OpKind]opDef{
 		},
 	},
 	OpGrayscale: {
-		Label:    "Grayscale",
-		Category: "Basic",
+		Label:    "Standard (Rec.709)",
+		Category: "Grayscale",
+		Live:     false,
+		Apply: func(img *image.RGBA, _ Params) {
+			point.Grayscale(img)
+		},
+	},
+	OpGrayscaleFast: {
+		Label:    "Fast (Integer)",
+		Category: "Grayscale",
+		Live:     false,
+		Apply: func(img *image.RGBA, _ Params) {
+			point.FastGrayscale(img)
+		},
+	},
+	OpGrayscaleAvg: {
+		Label:    "Average",
+		Category: "Grayscale",
+		Live:     false,
+		Apply: func(img *image.RGBA, _ Params) {
+			point.AvgGrayscale(img)
+		},
+	},
+	OpGrayscalePhotoshop: {
+		Label:    "Photoshop (Luminance)",
+		Category: "Grayscale",
 		Live:     false,
 		Apply: func(img *image.RGBA, _ Params) {
 			point.PhotoshopGrayscale(img)
@@ -197,7 +225,7 @@ var registry = map[OpKind]opDef{
 	OpGaussianBlur: {
 		Label:    "Gaussian Blur",
 		Category: "Blur",
-		Live:     false,
+		Live:     true,
 		Params: []Param{
 			{Key: "amount", Label: "Amount", Min: 0, Max: 1, Step: 0.01},
 		},
@@ -205,7 +233,7 @@ var registry = map[OpKind]opDef{
 			if p["amount"] <= 0 {
 				return
 			}
-			copy(img.Pix, filter.GaussianBlur(img, p["amount"]).Pix)
+			copy(img.Pix, filter.FastGaussianBlur(img, p["amount"]).Pix)
 		},
 	},
 	OpSharpen: {
