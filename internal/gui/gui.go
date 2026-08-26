@@ -6,6 +6,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -34,28 +35,57 @@ func NewApp() *App {
 		OnUndo: imageView.Undo,
 	})
 
-	openBtn := widget.NewButton("Open Image", func() {
-		openImageDialog(w, func(img *image.RGBA) {
-			imageView.LoadImage(img)
-			sidebar.Reset()
-		})
-	})
+	openBtn := widget.NewButtonWithIcon(
+		"Open Image",
+		theme.FolderOpenIcon(),
+		func() {
+			openImageDialog(w, func(img *image.RGBA) {
+				imageView.LoadImage(img)
+				sidebar.Reset()
+			})
+		},
+	)
 
-	saveBtn := widget.NewButton("Export Image", func() {
-		saveImageDialog(w, imageView.PrepareExport())
-	})
+	saveBtn := widget.NewButtonWithIcon(
+		"Export Image",
+		theme.DocumentSaveIcon(),
+		func() {
+			saveImageDialog(w, imageView.PrepareExport())
+		},
+	)
 
 	title := widget.NewLabel("Fern")
+	title.TextStyle = fyne.TextStyle{
+		Bold: true,
+	}
 
-	topBar := container.NewHBox(title,widget.NewSeparator(), openBtn, saveBtn, )
+	actions := container.NewHBox(
+		openBtn,
+		saveBtn,
+	)
+
+	topBar := container.NewBorder(
+		nil,     // top
+		nil,     // bottom
+		title,   // left
+		actions, // right
+		nil,     // center
+	)
 
 	split := container.NewHSplit(
 		imageView.CanvasObject(),
 		sidebar.CanvasObject(),
 	)
-	split.SetOffset(0.75) // 75% image, 25% sidebar
+	split.SetOffset(0.75)
 
-	content := container.NewBorder(topBar, nil, nil, nil, split)
+	content := container.NewBorder(
+		topBar,
+		nil,
+		nil,
+		nil,
+		split,
+	)
+
 	w.SetContent(content)
 	w.Resize(fyne.NewSize(1200, 750))
 

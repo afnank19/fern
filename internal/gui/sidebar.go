@@ -7,8 +7,8 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
-
 )
 
 // SidebarCallbacks decouple the sidebar from image state: it reports user
@@ -46,7 +46,7 @@ func NewSidebar(cb SidebarCallbacks) *Sidebar {
 		controls: make(map[ctlKey]ctlWidgets),
 	}
 	s.container = container.NewVBox(
-		widget.NewButton("Undo", s.cb.OnUndo),
+		widget.NewButtonWithIcon("Undo", theme.ContentUndoIcon(), s.cb.OnUndo),
 		s.buildTabs(),
 	)
 	return s
