@@ -2,12 +2,13 @@ package gui
 
 import (
 	"fmt"
+	"image/color"
 
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 
-	"github.com/afnank19/fern/utils"
 )
 
 // SidebarCallbacks decouple the sidebar from image state: it reports user
@@ -65,62 +66,109 @@ func (s *Sidebar) buildTabs() fyne.CanvasObject {
 		if _, seen := catContents[def.Category]; !seen {
 			tabOrder = append(tabOrder, def.Category)
 		}
-		catContents[def.Category] = append(catContents[def.Category], s.buildOpControls(kind, def)...)
+
+		catContents[def.Category] = append(
+			catContents[def.Category],
+			s.buildOpControls(kind, def)...,
+		)
 	}
 
 	tabs := container.NewAppTabs()
+
 	for _, cat := range tabOrder {
-		tabs.Append(container.NewTabItem(cat, container.NewVBox(catContents[cat]...)))
+		tabs.Append(
+			container.NewTabItem(
+				cat,
+				container.NewVBox(catContents[cat]...),
+			),
+		)
 	}
+
 	tabs.SetTabLocation(container.TabLocationTop)
+
 	return tabs
 }
 
-// This is building the options for each tab
+// buildOpControls builds one visually separated section for an operation.
 func (s *Sidebar) buildOpControls(kind OpKind, def opDef) []fyne.CanvasObject {
-	items := []fyne.CanvasObject{
-		utils.BuildTitleLabel(def.Label),
-		widget.NewSeparator(),
+	// Section contents.
+	items := make([]fyne.CanvasObject, 0, len(def.Params)*2+4)
+
+	// Bold section title.
+	title := widget.NewLabel(def.Label)
+	title.TextStyle = fyne.TextStyle{
+		Bold: true,
 	}
+
+	items = append(
+		items,
+		title,
+	)
 
 	for _, p := range def.Params {
 		k := ctlKey{kind: kind, key: p.Key}
+
 		label := widget.NewLabel(formatParam(p, p.Default))
-		w := ctlWidgets{label: label}
+		w := ctlWidgets{
+			label: label,
+		}
 
 		switch p.Widget {
 		case CheckWidget:
 			check := widget.NewCheck(p.Label, nil)
 			check.SetChecked(p.Default >= 0.5)
+
 			check.OnChanged = func(on bool) {
 				val := 0.0
 				if on {
 					val = 1
 				}
+
 				s.cb.OnParam(kind, p.Key, val)
 			}
+
 			w.check = check
 			items = append(items, check)
+
 		default:
 			slider := widget.NewSlider(p.Min, p.Max)
 			slider.Step = p.Step
 			slider.Value = p.Default
+
 			slider.OnChanged = func(v float64) {
 				label.SetText(formatParam(p, v))
 				s.cb.OnParam(kind, p.Key, v)
 			}
+
 			w.slider = slider
 			items = append(items, label, slider)
 		}
+
 		s.controls[k] = w
 	}
 
 	if !def.Live {
-		items = append(items, widget.NewButton("Apply "+def.Label, func() {
-			s.cb.OnCommit(kind)
-		}))
+		items = append(
+			items,
+			widget.NewButton("Apply "+def.Label, func() {
+				s.cb.OnCommit(kind)
+			}),
+		)
 	}
-	return items
+
+	// Bottom border.
+	items = append(items, widget.NewSeparator())
+
+	// Wrap the section and add a small fixed gap underneath it.
+	section := container.NewVBox(items...)
+
+	gap := canvas.NewRectangle(color.Transparent)
+	gap.SetMinSize(fyne.NewSize(1, 4))
+
+	return []fyne.CanvasObject{
+		section,
+		gap,
+	}
 }
 
 // ResetOp snaps one op's controls back to their defaults without firing
@@ -131,12 +179,15 @@ func (s *Sidebar) ResetOp(kind OpKind) {
 		if !ok {
 			continue
 		}
+
 		switch {
 		case w.check != nil:
 			w.check.SetChecked(p.Default >= 0.5)
+
 		case w.slider != nil:
 			w.slider.SetValue(p.Default)
 		}
+
 		w.label.SetText(formatParam(p, p.Default))
 	}
 }

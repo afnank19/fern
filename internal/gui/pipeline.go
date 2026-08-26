@@ -197,7 +197,7 @@ var registry = map[OpKind]opDef{
 	OpGaussianBlur: {
 		Label:    "Gaussian Blur",
 		Category: "Blur",
-		Live:     false,
+		Live:     true,
 		Params: []Param{
 			{Key: "amount", Label: "Amount", Min: 0, Max: 1, Step: 0.01},
 		},
@@ -205,7 +205,7 @@ var registry = map[OpKind]opDef{
 			if p["amount"] <= 0 {
 				return
 			}
-			copy(img.Pix, filter.GaussianBlur(img, p["amount"]).Pix)
+			copy(img.Pix, filter.FastGaussianBlur(img, p["amount"]).Pix)
 		},
 	},
 	OpSharpen: {
