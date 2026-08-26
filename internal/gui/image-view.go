@@ -107,11 +107,22 @@ func (v *ImageView) SetParam(kind OpKind, key string, val float64) {
 
 // Commit moves an op's pending parameters onto the stack as a permanent
 // step and re-renders. Used by Apply buttons for heavy effects.
+//
+// Ops that declare no params (Invert, Grayscale) always commit — their
+// pending map is never populated since there is nothing to stage.
+// Parameterized ops only commit if values were actually staged, so pressing
+// Apply on an untouched slider set does not push a no-op entry.
 func (v *ImageView) Commit(kind OpKind) {
+	def, ok := registry[kind]
+	if !ok || v.original == nil {
+		return
+	}
+	hasParams := len(def.Params) > 0
+
 	v.mu.Lock()
-	p, ok := v.pending[kind]
+	p, staged := v.pending[kind]
 	delete(v.pending, kind)
-	if ok && len(p) > 0 {
+	if !hasParams || (staged && len(p) > 0) {
 		v.stack = append(v.stack, Op{Kind: kind, Params: cloneParams(p)})
 	}
 	v.mu.Unlock()

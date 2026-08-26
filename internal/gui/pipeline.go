@@ -117,7 +117,7 @@ var registry = map[OpKind]opDef{
 	OpThreshold: {
 		Label:    "Threshold",
 		Category: "Basic",
-		Live:     true,
+		Live:     false,
 		Params: []Param{
 			{Key: "level", Label: "Level", Min: 0, Max: 255, Step: 1, Default: 128},
 		},
