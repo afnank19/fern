@@ -45,9 +45,9 @@ func NewApp() *App {
 		saveImageDialog(w, imageView.PrepareExport())
 	})
 
-	title := widget.NewLabel("Retarted Photoshop")
+	title := widget.NewLabel("Fern")
 
-	topBar := container.NewHBox(openBtn, saveBtn, title)
+	topBar := container.NewHBox(title,widget.NewSeparator(), openBtn, saveBtn, )
 
 	split := container.NewHSplit(
 		imageView.CanvasObject(),
