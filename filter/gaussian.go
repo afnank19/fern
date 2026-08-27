@@ -1,7 +1,6 @@
 package filter
 
 import (
-	"fmt"
 	"image"
 	"math"
 )
@@ -17,7 +16,6 @@ func GaussianBlur(img *image.RGBA, val float64) *image.RGBA {
 }
 
 func buildGaussianKernel(kernelSize int, sigma float64) [][]float64{
-	fmt.Println("building gaussian kernel with size", kernelSize, " and sigma", sigma)
 	kernel := make([][]float64, kernelSize)
 	for i := range kernel {
 		kernel[i] = make([]float64, kernelSize)
@@ -76,7 +74,6 @@ func FastGaussianBlur(img *image.RGBA, val float64)  *image.RGBA{
 }
 
 func build1DGaussianKernel(kernelSize int, sigma float64) []float64{
-	fmt.Println("building 1d gaussian kernel with size", kernelSize, " and sigma", sigma)
 	kernel := make([]float64, kernelSize)
 
 	radius := kernelSize / 2
