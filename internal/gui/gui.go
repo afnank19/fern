@@ -85,12 +85,14 @@ func NewApp() *App {
 		saveBtn,
 	)
 
+	statusLabel := imageView.StatusLabel()
+
 	topBar := container.NewBorder(
-		nil,     // top
-		nil,     // bottom
-		title,   // left
-		actions, // right
-		nil,     // center
+		nil,          // top
+		nil,          // bottom
+		title,        // left
+		actions,      // right
+		statusLabel,  // center
 	)
 
 	content := container.NewBorder(

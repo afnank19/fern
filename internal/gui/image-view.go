@@ -6,6 +6,8 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/widget"
 	"github.com/afnank19/fern/filter"
 	fernimage "github.com/afnank19/fern/image"
 )
@@ -19,6 +21,8 @@ import (
 // every change. A preview frame is always base + stack + live pending.
 type ImageView struct {
 	canvasImage *canvas.Image
+	spinner     *widget.Activity
+	status      *widget.Label
 
 	mu       sync.Mutex  // guards the pointer/state fields below, not pixel data
 	original *image.RGBA // pristine full-res source, never mutated
@@ -38,8 +42,15 @@ func NewImageView() *ImageView {
 	img.FillMode = canvas.ImageFillContain
 	img.SetMinSize(fyne.NewSize(400, 400))
 
+	spinner := widget.NewActivity()
+	spinner.Hide()
+
+	status := widget.NewLabel("")
+
 	v := &ImageView{
 		canvasImage: img,
+		spinner:     spinner,
+		status:      status,
 		pending:     make(map[OpKind]Params),
 	}
 	v.rend = newRenderer(v)
@@ -189,7 +200,28 @@ func (v *ImageView) PrepareExport() *image.RGBA {
 
 // CanvasObject returns the displayable Fyne object.
 func (v *ImageView) CanvasObject() fyne.CanvasObject {
-	return v.canvasImage
+	return container.NewStack(v.canvasImage, v.spinner)
+}
+
+// StatusLabel returns the label used for the processing indicator in the top bar.
+func (v *ImageView) StatusLabel() *widget.Label {
+	return v.status
+}
+
+// showBusy displays the spinner overlay and status text.
+func (v *ImageView) showBusy() {
+	fyne.Do(func() {
+		v.spinner.Start()
+		v.status.SetText("Processing...")
+	})
+}
+
+// hideBusy hides the spinner overlay and clears the status text.
+func (v *ImageView) hideBusy() {
+	fyne.Do(func() {
+		v.spinner.Stop()
+		v.status.SetText("")
+	})
 }
 
 // cloneRGBA returns a deep copy of an image.RGBA.
