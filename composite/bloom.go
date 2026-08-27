@@ -1,7 +1,6 @@
 package composite
 
 import (
-	"fmt"
 	"image"
 	"math"
 
@@ -162,8 +161,6 @@ func Bloom(img *image.RGBA, intensity ,threshold, blurAmt float64) {
 				nextDSI.Pix[i+3] = 255
 			}
 		}
-
-		localImg.SaveImage(nextDSI, fmt.Sprintf("up-sample-%dx.png",idx*2), "./assets/bloom")
 	}
 
 	// The first image in this array is 1 Downsample2x lower than our original image
@@ -219,9 +216,5 @@ func saturatingWeightedSum(a, b uint8, weight float64) uint8 {
 }
 
 func getMinimumBounds(img1, img2 *image.RGBA) image.Rectangle {
-    // Intersect returns the largest rectangle contained by both rectangles
-    fmt.Println(img1.Bounds())
-    fmt.Println(img2.Bounds())
-    fmt.Println()
     return img1.Bounds().Intersect(img2.Bounds())
 }

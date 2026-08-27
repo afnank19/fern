@@ -90,7 +90,7 @@ var registry = map[OpKind]opDef{
 		Category: "Basic",
 		Live:     true,
 		Params: []Param{
-			{Key: "amount", Label: "Amount", Min: -100, Max: 100, Step: 1},
+			{Key: "amount", Label: "Amount", Min: -100, Max: 200, Step: 1},
 		},
 		Apply: func(img *image.RGBA, p Params) {
 			if p["amount"] == 0 {
@@ -104,7 +104,7 @@ var registry = map[OpKind]opDef{
 		Category: "Basic",
 		Live:     true,
 		Params: []Param{
-			{Key: "factor", Label: "Factor", Min: 0, Max: 10, Step: 1},
+			{Key: "factor", Label: "Factor", Min: 0, Max: 50, Step: 1},
 		},
 		Apply: func(img *image.RGBA, p Params) {
 			point.FastSigmoidalContrast(img, p["factor"])
@@ -123,7 +123,7 @@ var registry = map[OpKind]opDef{
 		Category: "Basic",
 		Live:     false,
 		Params: []Param{
-			{Key: "level", Label: "Level", Min: 0, Max: 255, Step: 1, Default: 128},
+			{Key: "level", Label: "Level", Min: 0, Max: 255, Step: 1, Default: 0},
 		},
 		Apply: func(img *image.RGBA, p Params) {
 			point.Threshold(img, uint8(p["level"]))
@@ -210,7 +210,7 @@ var registry = map[OpKind]opDef{
 	OpBoxBlur: {
 		Label:    "Box Blur",
 		Category: "Blur",
-		Live:     false,
+		Live:     true,
 		Params: []Param{
 			{Key: "amount", Label: "Amount", Min: 0, Max: 1, Step: 0.01},
 		},
@@ -239,7 +239,7 @@ var registry = map[OpKind]opDef{
 	OpSharpen: {
 		Label:    "Sharpen",
 		Category: "Sharpen",
-		Live:     false,
+		Live:     true,
 		Params: []Param{
 			{Key: "amount", Label: "Amount", Min: 0, Max: 2, Step: 0.01},
 		},
@@ -269,7 +269,7 @@ var registry = map[OpKind]opDef{
 	OpUniformNoise: {
 		Label:    "Uniform Noise",
 		Category: "Noise",
-		Live:     false,
+		Live:     true,
 		Params: []Param{
 			{Key: "amount", Label: "Amount", Min: 0, Max: 50, Step: 1},
 			{Key: "perChan", Label: "Per Channel", Min: 0, Max: 1, Step: 1, Widget: CheckWidget},

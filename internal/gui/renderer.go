@@ -78,6 +78,8 @@ func (r *renderer) renderFrame(st RenderState) {
 		return
 	}
 
+	fyne.Do(func() { v.showBusy() })
+
 	execute(scratch, base, st)
 
 	fyne.Do(func() {
@@ -92,5 +94,6 @@ func (r *renderer) renderFrame(st RenderState) {
 
 		v.canvasImage.Image = img
 		v.canvasImage.Refresh()
+		v.hideBusy()
 	})
 }
